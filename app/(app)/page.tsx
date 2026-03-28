@@ -1,35 +1,55 @@
 import { createClient } from '@/lib/supabase/server'
 import ClipCard from '@/components/ClipCard'
 import SearchBar from '@/components/SearchBar'
+import SortBar from '@/components/SortBar'
 import { Suspense } from 'react'
 import type { Clip } from '@/types/database'
+
+type SortOption = 'newest' | 'views' | 'longest'
 
 export default async function FeedPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>
+  searchParams: Promise<{ q?: string; sort?: string; game?: string }>
 }) {
-  const { q } = await searchParams
+  const { q, sort, game } = await searchParams
+  const sortOption = (sort ?? 'newest') as SortOption
   const supabase = await createClient()
 
-  let query = supabase
+  // Fetch clips + distinct games in parallel
+  let clipsQuery = supabase
     .from('clips')
     .select('*, profiles(username, avatar_url)')
-    .order('created_at', { ascending: false })
 
   if (q) {
-    query = query.or(`title.ilike.%${q}%,game.ilike.%${q}%,description.ilike.%${q}%`)
+    clipsQuery = clipsQuery.or(`title.ilike.%${q}%,game.ilike.%${q}%,description.ilike.%${q}%`)
+  }
+  if (game) {
+    clipsQuery = clipsQuery.eq('game', game)
   }
 
-  const { data: clips } = await query
+  if (sortOption === 'views') {
+    clipsQuery = clipsQuery.order('views', { ascending: false })
+  } else if (sortOption === 'longest') {
+    clipsQuery = clipsQuery.order('duration', { ascending: false, nullsFirst: false })
+  } else {
+    clipsQuery = clipsQuery.order('created_at', { ascending: false })
+  }
+
+  const [{ data: clips }, { data: gameRows }] = await Promise.all([
+    clipsQuery,
+    supabase.from('clips').select('game').not('game', 'is', null),
+  ])
+
+  const games = [...new Set((gameRows ?? []).map(r => r.game as string))].sort()
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6 gap-4">
-        <h1 className="text-xl font-bold text-white shrink-0">
-          {q ? `Results for "${q}"` : 'Recent Clips'}
-        </h1>
-        <div className="w-full max-w-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+        <Suspense>
+          <SortBar games={games} />
+        </Suspense>
+        <div className="w-full sm:w-64 shrink-0">
           <Suspense>
             <SearchBar />
           </Suspense>
@@ -40,6 +60,8 @@ export default async function FeedPage({
         <div className="text-center py-24 text-[var(--muted)]">
           {q ? (
             <p className="text-lg">No clips found for &quot;{q}&quot;</p>
+          ) : game ? (
+            <p className="text-lg">No clips for {game} yet.</p>
           ) : (
             <>
               <p className="text-lg">No clips yet.</p>

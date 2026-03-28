@@ -12,11 +12,15 @@ export default function SearchBar() {
   // Debounce: push URL update 300ms after user stops typing
   const push = useCallback(
     (q: string) => {
-      const params = new URLSearchParams()
-      if (q) params.set('q', q)
-      router.push(q ? `/?${params}` : '/')
+      const params = new URLSearchParams(searchParams.toString())
+      if (q) {
+        params.set('q', q)
+      } else {
+        params.delete('q')
+      }
+      router.push(params.size > 0 ? `/?${params}` : '/')
     },
-    [router]
+    [router, searchParams]
   )
 
   useEffect(() => {
