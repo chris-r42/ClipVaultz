@@ -23,7 +23,9 @@ export default function UploadPage() {
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []).filter(f => f.type.startsWith('video/'))
     if (!files.length) return
-    const newEntries: FileEntry[] = files.map(f => ({
+    const slots = 10 - entries.length
+    if (slots <= 0) return
+    const newEntries: FileEntry[] = files.slice(0, slots).map(f => ({
       id: crypto.randomUUID(),
       file: f,
       title: f.name.replace(/\.[^.]+$/, ''),
@@ -123,8 +125,12 @@ export default function UploadPage() {
           <svg className="w-10 h-10 mx-auto text-[var(--muted)] mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.069A1 1 0 0121 8.876V15.5a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
           </svg>
-          <p className="text-white font-medium">Click to select videos</p>
-          <p className="text-[var(--muted)] text-sm mt-1">MP4, MOV, WebM — select multiple at once</p>
+          <p className="text-white font-medium">
+            {entries.length >= 10 ? 'Limit reached (10 clips max)' : 'Click to select videos'}
+          </p>
+          <p className="text-[var(--muted)] text-sm mt-1">
+            {entries.length >= 10 ? 'Remove a clip to add another' : 'MP4, MOV, WebM — up to 10 at once'}
+          </p>
         </div>
 
         {/* File list */}
