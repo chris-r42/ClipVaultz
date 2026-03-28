@@ -2,21 +2,35 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import CommentSection from '@/components/CommentSection'
 import DownloadButton from '@/components/DownloadButton'
+import DeleteClipButton from '@/components/DeleteClipButton'
 
 export default async function ClipPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
 
-  const { data: clip } = await supabase
-    .from('clips')
-    .select('*, profiles(username, avatar_url)')
-    .eq('id', id)
-    .single()
+  const [{ data: clip }, { data: { user } }] = await Promise.all([
+    supabase
+      .from('clips')
+      .select('*, profiles(username, avatar_url)')
+      .eq('id', id)
+      .single(),
+    supabase.auth.getUser(),
+  ])
 
   if (!clip) notFound()
 
   // Increment view count (fire and forget)
   supabase.from('clips').update({ views: clip.views + 1 }).eq('id', id)
+
+  let isAdmin = false
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single()
+    isAdmin = profile?.is_admin ?? false
+  }
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -45,7 +59,10 @@ export default async function ClipPage({ params }: { params: Promise<{ id: strin
             <span>{clip.views} views</span>
             <span>{new Date(clip.created_at).toLocaleDateString()}</span>
           </div>
-          <DownloadButton clipId={id} />
+          <div className="flex items-center gap-3">
+            <DownloadButton clipId={id} />
+            {isAdmin && <DeleteClipButton clipId={id} />}
+          </div>
         </div>
 
         {clip.description && (
