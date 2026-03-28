@@ -66,11 +66,10 @@ export async function POST(request: Request) {
 
   // If no game was provided, try to detect it from the thumbnail
   if (!game && process.env.ANTHROPIC_API_KEY) {
-    detectGame(videoId).then(detectedGame => {
-      if (detectedGame) {
-        supabase.from('clips').update({ game: detectedGame }).eq('id', clip.id)
-      }
-    })
+    const detectedGame = await detectGame(videoId)
+    if (detectedGame) {
+      await supabase.from('clips').update({ game: detectedGame }).eq('id', clip.id)
+    }
   }
 
   return NextResponse.json({ clipId: clip.id })
