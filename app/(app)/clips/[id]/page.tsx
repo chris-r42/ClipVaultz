@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import CommentSection from '@/components/CommentSection'
 import DownloadButton from '@/components/DownloadButton'
 import DeleteClipButton from '@/components/DeleteClipButton'
+import EditClipButton from '@/components/EditClipButton'
 
 export default async function ClipPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -23,6 +24,7 @@ export default async function ClipPage({ params }: { params: Promise<{ id: strin
   supabase.from('clips').update({ views: clip.views + 1 }).eq('id', id)
 
   let isAdmin = false
+  let isOwner = false
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
@@ -30,7 +32,10 @@ export default async function ClipPage({ params }: { params: Promise<{ id: strin
       .eq('id', user.id)
       .single()
     isAdmin = profile?.is_admin ?? false
+    isOwner = clip.user_id === user.id
   }
+
+  const canEdit = isOwner || isAdmin
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -61,6 +66,16 @@ export default async function ClipPage({ params }: { params: Promise<{ id: strin
           </div>
           <div className="flex items-center gap-3">
             <DownloadButton clipId={id} />
+            {canEdit && (
+              <EditClipButton
+                clipId={id}
+                initial={{
+                  title: clip.title,
+                  game: clip.game ?? '',
+                  description: clip.description ?? '',
+                }}
+              />
+            )}
             {isAdmin && <DeleteClipButton clipId={id} />}
           </div>
         </div>
