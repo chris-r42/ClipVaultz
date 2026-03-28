@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import CommentSection from '@/components/CommentSection'
+import DownloadButton from '@/components/DownloadButton'
 
 export default async function ClipPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -44,15 +45,7 @@ export default async function ClipPage({ params }: { params: Promise<{ id: strin
             <span>{clip.views} views</span>
             <span>{new Date(clip.created_at).toLocaleDateString()}</span>
           </div>
-          <a
-            href={`/api/clips/${id}/download`}
-            className="flex items-center gap-1.5 text-sm text-[var(--muted)] hover:text-white transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Download
-          </a>
+          <DownloadButton clipId={id} />
         </div>
 
         {clip.description && (

@@ -8,7 +8,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  // Get the Cloudflare video ID from our DB
   const { data: clip } = await supabase
     .from('clips')
     .select('cloudflare_video_id, title')
@@ -20,7 +19,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID
   const apiToken = process.env.CLOUDFLARE_STREAM_API_TOKEN
 
-  // Create (or fetch existing) download link from Cloudflare Stream
+  // POST is idempotent — triggers generation if not started, returns existing state if already processing/ready
   const res = await fetch(
     `https://api.cloudflare.com/client/v4/accounts/${accountId}/stream/${clip.cloudflare_video_id}/downloads`,
     {
@@ -34,10 +33,21 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   }
 
   const { result } = await res.json()
+  const status = result?.default?.status
   const downloadUrl = result?.default?.url
 
-  if (!downloadUrl) {
-    return NextResponse.json({ error: 'Download not ready yet' }, { status: 503 })
+  if (status === 'inprogress') {
+    return NextResponse.json(
+      { error: 'Download is being prepared — try again in a few seconds.' },
+      { status: 202 }
+    )
+  }
+
+  if (status !== 'ready' || !downloadUrl) {
+    return NextResponse.json(
+      { error: 'Download not available for this clip.' },
+      { status: 503 }
+    )
   }
 
   return NextResponse.redirect(downloadUrl)
