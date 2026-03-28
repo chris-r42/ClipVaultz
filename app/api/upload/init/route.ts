@@ -21,6 +21,7 @@ export async function POST() {
       body: JSON.stringify({
         maxDurationSeconds: 300, // 5 min max
         requireSignedURLs: false,
+        downloadable: true,
       }),
     }
   )

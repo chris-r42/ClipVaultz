@@ -33,15 +33,26 @@ export default async function ClipPage({ params }: { params: Promise<{ id: strin
       <div className="bg-[var(--card)] border border-[var(--card-border)] rounded-xl p-5">
         <h1 className="text-xl font-bold text-white">{clip.title}</h1>
 
-        <div className="flex items-center gap-4 mt-2 text-sm text-[var(--muted)]">
-          <span>{clip.profiles?.username ?? 'Unknown'}</span>
-          {clip.game && (
-            <span className="bg-[var(--accent)]/20 text-[var(--accent)] px-2 py-0.5 rounded-full text-xs font-medium">
-              {clip.game}
-            </span>
-          )}
-          <span>{clip.views} views</span>
-          <span>{new Date(clip.created_at).toLocaleDateString()}</span>
+        <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center gap-4 text-sm text-[var(--muted)]">
+            <span>{clip.profiles?.username ?? 'Unknown'}</span>
+            {clip.game && (
+              <span className="bg-[var(--accent)]/20 text-[var(--accent)] px-2 py-0.5 rounded-full text-xs font-medium">
+                {clip.game}
+              </span>
+            )}
+            <span>{clip.views} views</span>
+            <span>{new Date(clip.created_at).toLocaleDateString()}</span>
+          </div>
+          <a
+            href={`/api/clips/${id}/download`}
+            className="flex items-center gap-1.5 text-sm text-[var(--muted)] hover:text-white transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Download
+          </a>
         </div>
 
         {clip.description && (
