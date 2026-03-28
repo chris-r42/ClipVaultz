@@ -21,7 +21,7 @@ export default async function ClipPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="max-w-4xl mx-auto">
       {/* Video player */}
-      <div className="aspect-video bg-black rounded-xl overflow-hidden mb-4">
+      <div className="aspect-video bg-black rounded-xl overflow-hidden mb-5">
         <iframe
           src={`https://iframe.videodelivery.net/${clip.cloudflare_video_id}`}
           className="w-full h-full"
@@ -31,14 +31,14 @@ export default async function ClipPage({ params }: { params: Promise<{ id: strin
       </div>
 
       {/* Clip info */}
-      <div className="bg-[var(--card)] border border-[var(--card-border)] rounded-xl p-5">
-        <h1 className="text-xl font-bold text-white">{clip.title}</h1>
+      <div className="mb-6">
+        <h1 className="text-xl font-bold text-white mb-3">{clip.title}</h1>
 
-        <div className="flex items-center justify-between mt-2">
-          <div className="flex items-center gap-4 text-sm text-[var(--muted)]">
-            <span>{clip.profiles?.username ?? 'Unknown'}</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 text-sm text-[var(--muted)]">
+            <span className="text-white/80">{clip.profiles?.username ?? 'Unknown'}</span>
             {clip.game && (
-              <span className="bg-[var(--accent)]/20 text-[var(--accent)] px-2 py-0.5 rounded-full text-xs font-medium">
+              <span className="bg-[var(--accent)]/15 text-[var(--accent)] px-2.5 py-0.5 rounded-full text-xs font-medium">
                 {clip.game}
               </span>
             )}
@@ -49,7 +49,7 @@ export default async function ClipPage({ params }: { params: Promise<{ id: strin
         </div>
 
         {clip.description && (
-          <p className="mt-3 text-sm text-[var(--foreground)] leading-relaxed">
+          <p className="mt-4 text-sm text-[var(--muted)] leading-relaxed border-t border-white/5 pt-4">
             {clip.description}
           </p>
         )}

@@ -37,19 +37,19 @@ export default async function ProfilePage({
     <div>
       {/* Profile header */}
       <div className="flex items-center gap-5 mb-8">
-        <div className="w-16 h-16 rounded-full bg-[var(--card-border)] overflow-hidden shrink-0 flex items-center justify-center">
+        <div className="w-20 h-20 rounded-full bg-white/5 overflow-hidden shrink-0 flex items-center justify-center ring-2 ring-white/10">
           {profile.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={profile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
           ) : (
-            <span className="text-2xl font-bold text-[var(--muted)]">
+            <span className="text-3xl font-bold text-[var(--muted)]">
               {displayName.charAt(0).toUpperCase()}
             </span>
           )}
         </div>
         <div>
           <h1 className="text-2xl font-bold text-white">{displayName}</h1>
-          <p className="text-sm text-[var(--muted)] mt-0.5">
+          <p className="text-sm text-[var(--muted)] mt-1">
             {clipCount} clip{clipCount !== 1 ? 's' : ''} · Joined {joinDate}
           </p>
         </div>

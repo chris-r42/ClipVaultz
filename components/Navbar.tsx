@@ -24,7 +24,7 @@ export default function Navbar({ isAdmin }: { isAdmin: boolean }) {
   ]
 
   return (
-    <nav className="border-b border-[var(--card-border)] bg-[var(--card)] sticky top-0 z-50">
+    <nav className="border-b border-white/5 bg-[var(--sidebar-bg)] sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Link href="/" className="font-bold text-lg tracking-tight text-white">
@@ -35,9 +35,9 @@ export default function Navbar({ isAdmin }: { isAdmin: boolean }) {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   pathname === link.href
-                    ? 'bg-[var(--accent)] text-white'
+                    ? 'bg-white/10 text-white'
                     : 'text-[var(--muted)] hover:text-white hover:bg-white/5'
                 }`}
               >

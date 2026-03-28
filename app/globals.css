@@ -1,13 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0d0d0f;
-  --foreground: #e8e8ea;
-  --card: #17171a;
-  --card-border: #2a2a2e;
+  --background: #141414;
+  --foreground: #e5e5e5;
+  --card: #1a1a1a;
+  --card-border: #2e2e2e;
   --accent: #6d56fa;
   --accent-hover: #7c67fb;
-  --muted: #8b8b9a;
+  --muted: #888;
+  --sidebar-bg: #0a0a0a;
 }
 
 @theme inline {
@@ -29,4 +30,13 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

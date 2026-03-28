@@ -24,46 +24,55 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">
-            Clip<span className="text-[var(--accent)]">Vault</span>
-          </h1>
-          <p className="text-[var(--muted)] text-sm">Your gaming clips, all in one place.</p>
+    <div className="min-h-screen flex flex-col bg-[#0a0a0a]">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/10 via-transparent to-transparent pointer-events-none" />
+
+      {/* Logo top-left */}
+      <div className="relative px-8 py-6">
+        <span className="text-2xl font-bold tracking-tight text-white">
+          Clip<span className="text-[var(--accent)]">Vault</span>
+        </span>
+      </div>
+
+      {/* Centered card */}
+      <div className="relative flex-1 flex items-center justify-center px-4">
+        <div className="w-full max-w-xs">
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold text-white mb-2">Sign in</h1>
+            <p className="text-[var(--muted)] text-sm">Welcome back. Choose how to continue.</p>
+          </div>
+
+          <div className="space-y-3">
+            {error && (
+              <p className="text-red-400 text-sm text-center bg-red-400/10 rounded-lg py-2 px-3">
+                {error}
+              </p>
+            )}
+
+            <button
+              onClick={() => signIn('discord')}
+              disabled={!!loading}
+              className="w-full flex items-center justify-center gap-3 bg-[#5865F2] hover:bg-[#4752c4] disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-xl transition-colors"
+            >
+              <DiscordIcon />
+              {loading === 'discord' ? 'Redirecting...' : 'Continue with Discord'}
+            </button>
+
+            <button
+              onClick={() => signIn('google')}
+              disabled={!!loading}
+              className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-gray-800 font-medium py-3 px-4 rounded-xl transition-colors"
+            >
+              <GoogleIcon />
+              {loading === 'google' ? 'Redirecting...' : 'Continue with Google'}
+            </button>
+          </div>
+
+          <p className="text-center text-xs text-[var(--muted)] mt-6">
+            Access is invite-only. Contact an admin to get approved.
+          </p>
         </div>
-
-        <div className="bg-[var(--card)] border border-[var(--card-border)] rounded-xl p-6 space-y-3">
-          <h2 className="text-white font-semibold text-center mb-4">Sign in to continue</h2>
-
-          {error && (
-            <p className="text-red-400 text-sm text-center bg-red-400/10 rounded-lg py-2 px-3">
-              {error}
-            </p>
-          )}
-
-          <button
-            onClick={() => signIn('discord')}
-            disabled={!!loading}
-            className="w-full flex items-center justify-center gap-3 bg-[#5865F2] hover:bg-[#4752c4] disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-4 rounded-lg transition-colors"
-          >
-            <DiscordIcon />
-            {loading === 'discord' ? 'Redirecting...' : 'Continue with Discord'}
-          </button>
-
-          <button
-            onClick={() => signIn('google')}
-            disabled={!!loading}
-            className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-gray-800 font-medium py-2.5 px-4 rounded-lg transition-colors"
-          >
-            <GoogleIcon />
-            {loading === 'google' ? 'Redirecting...' : 'Continue with Google'}
-          </button>
-        </div>
-
-        <p className="text-center text-xs text-[var(--muted)] mt-4">
-          Access is invite-only. Contact an admin to get approved.
-        </p>
       </div>
     </div>
   )

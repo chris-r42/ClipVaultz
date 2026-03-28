@@ -12,7 +12,7 @@ export default function SidebarLink({ href, label }: { href: string; label: stri
       href={href}
       className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
         isActive
-          ? 'bg-[var(--accent)] text-white'
+          ? 'bg-white/10 text-white'
           : 'text-[var(--muted)] hover:text-white hover:bg-white/5'
       }`}
     >
