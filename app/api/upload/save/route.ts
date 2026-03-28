@@ -5,8 +5,8 @@ import Anthropic from '@anthropic-ai/sdk'
 const anthropic = new Anthropic()
 
 async function detectGame(videoId: string): Promise<string | null> {
+  const thumbnailUrl = `https://videodelivery.net/${videoId}/thumbnails/thumbnail.jpg`
   try {
-    const thumbnailUrl = `https://videodelivery.net/${videoId}/thumbnails/thumbnail.jpg`
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 32,
