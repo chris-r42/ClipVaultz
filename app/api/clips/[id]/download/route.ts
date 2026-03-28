@@ -50,5 +50,5 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     )
   }
 
-  return NextResponse.redirect(downloadUrl)
+  return NextResponse.json({ url: downloadUrl })
 }

@@ -7,22 +7,16 @@ export default function DownloadButton({ clipId }: { clipId: string }) {
 
   async function handleDownload() {
     setStatus('loading')
-    const res = await fetch(`/api/clips/${clipId}/download`, { redirect: 'follow' })
-
-    if (res.redirected) {
-      // Browser followed the redirect to the MP4 — trigger it
-      window.location.href = res.url
-      setStatus('idle')
-      return
-    }
-
+    const res = await fetch(`/api/clips/${clipId}/download`)
     const data = await res.json().catch(() => ({}))
 
-    if (res.status === 202) {
+    if (res.ok && data.url) {
+      window.open(data.url, '_blank')
+      setStatus('idle')
+    } else if (res.status === 202) {
       setStatus('preparing')
       setTimeout(() => setStatus('idle'), 4000)
     } else {
-      console.error(data.error)
       setStatus('error')
       setTimeout(() => setStatus('idle'), 4000)
     }
