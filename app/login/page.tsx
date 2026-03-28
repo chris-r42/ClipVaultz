@@ -2,76 +2,171 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+
+type Mode = 'signin' | 'signup'
 
 export default function LoginPage() {
-  const [loading, setLoading] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [oauthLoading, setOauthLoading] = useState<string | null>(null)
+  const [mode, setMode] = useState<Mode>('signin')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [emailLoading, setEmailLoading] = useState(false)
+  const [message, setMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null)
+  const router = useRouter()
 
-  async function signIn(provider: 'discord' | 'google') {
-    setLoading(provider)
-    setError(null)
+  async function signInWithOAuth(provider: 'discord' | 'google') {
+    setOauthLoading(provider)
+    setMessage(null)
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
     if (error) {
-      setError(error.message)
-      setLoading(null)
+      setMessage({ type: 'error', text: error.message })
+      setOauthLoading(null)
     }
+  }
+
+  async function handleEmailAuth(e: React.FormEvent) {
+    e.preventDefault()
+    setEmailLoading(true)
+    setMessage(null)
+    const supabase = createClient()
+
+    if (mode === 'signin') {
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) {
+        setMessage({ type: 'error', text: error.message })
+      } else {
+        router.push('/')
+        router.refresh()
+      }
+    } else {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      })
+      if (error) {
+        setMessage({ type: 'error', text: error.message })
+      } else {
+        setMessage({
+          type: 'success',
+          text: 'Check your email to confirm your account, then wait for an admin to approve you.',
+        })
+      }
+    }
+
+    setEmailLoading(false)
   }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0a0a0a]">
-      {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/10 via-transparent to-transparent pointer-events-none" />
 
-      {/* Logo top-left */}
+      {/* Logo */}
       <div className="relative px-8 py-6">
         <span className="text-2xl font-bold tracking-tight text-white">
           Clip<span className="text-[var(--accent)]">Vault</span>
         </span>
       </div>
 
-      {/* Centered card */}
+      {/* Card */}
       <div className="relative flex-1 flex items-center justify-center px-4">
         <div className="w-full max-w-xs">
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold text-white mb-2">Sign in</h1>
-            <p className="text-[var(--muted)] text-sm">Welcome back. Choose how to continue.</p>
+          <div className="mb-6 text-center">
+            <h1 className="text-3xl font-bold text-white mb-2">
+              {mode === 'signin' ? 'Sign in' : 'Create account'}
+            </h1>
+            <p className="text-[var(--muted)] text-sm">
+              {mode === 'signin' ? 'Welcome back.' : 'Access is invite-only — an admin must approve you.'}
+            </p>
           </div>
 
-          <div className="space-y-3">
-            {error && (
-              <p className="text-red-400 text-sm text-center bg-red-400/10 rounded-lg py-2 px-3">
-                {error}
-              </p>
-            )}
+          {message && (
+            <div className={`mb-4 text-sm text-center rounded-lg py-2 px-3 ${
+              message.type === 'error'
+                ? 'text-red-400 bg-red-400/10'
+                : 'text-green-400 bg-green-400/10'
+            }`}>
+              {message.text}
+            </div>
+          )}
 
+          {/* Email/password form */}
+          <form onSubmit={handleEmailAuth} className="space-y-3 mb-4">
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              className="w-full bg-white/5 border border-white/10 text-white placeholder-[var(--muted)] rounded-xl px-4 py-3 text-sm outline-none focus:border-[var(--accent)] transition-colors"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              className="w-full bg-white/5 border border-white/10 text-white placeholder-[var(--muted)] rounded-xl px-4 py-3 text-sm outline-none focus:border-[var(--accent)] transition-colors"
+            />
             <button
-              onClick={() => signIn('discord')}
-              disabled={!!loading}
+              type="submit"
+              disabled={emailLoading}
+              className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-xl transition-colors"
+            >
+              {emailLoading
+                ? (mode === 'signin' ? 'Signing in...' : 'Creating account...')
+                : (mode === 'signin' ? 'Sign in' : 'Create account')}
+            </button>
+          </form>
+
+          <p className="text-center text-xs text-[var(--muted)] mb-4">
+            {mode === 'signin' ? (
+              <>No account?{' '}
+                <button onClick={() => { setMode('signup'); setMessage(null) }} className="text-white hover:underline">
+                  Sign up
+                </button>
+              </>
+            ) : (
+              <>Already have one?{' '}
+                <button onClick={() => { setMode('signin'); setMessage(null) }} className="text-white hover:underline">
+                  Sign in
+                </button>
+              </>
+            )}
+          </p>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex-1 h-px bg-white/10" />
+            <span className="text-xs text-[var(--muted)]">or</span>
+            <div className="flex-1 h-px bg-white/10" />
+          </div>
+
+          {/* OAuth */}
+          <div className="space-y-3">
+            <button
+              onClick={() => signInWithOAuth('discord')}
+              disabled={!!oauthLoading}
               className="w-full flex items-center justify-center gap-3 bg-[#5865F2] hover:bg-[#4752c4] disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-xl transition-colors"
             >
               <DiscordIcon />
-              {loading === 'discord' ? 'Redirecting...' : 'Continue with Discord'}
+              {oauthLoading === 'discord' ? 'Redirecting...' : 'Continue with Discord'}
             </button>
 
             <button
-              onClick={() => signIn('google')}
-              disabled={!!loading}
+              onClick={() => signInWithOAuth('google')}
+              disabled={!!oauthLoading}
               className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-gray-800 font-medium py-3 px-4 rounded-xl transition-colors"
             >
               <GoogleIcon />
-              {loading === 'google' ? 'Redirecting...' : 'Continue with Google'}
+              {oauthLoading === 'google' ? 'Redirecting...' : 'Continue with Google'}
             </button>
           </div>
-
-          <p className="text-center text-xs text-[var(--muted)] mt-6">
-            Access is invite-only. Contact an admin to get approved.
-          </p>
         </div>
       </div>
     </div>
