@@ -49,19 +49,38 @@ export default function UploadPage() {
     updateEntry(entry.id, { state: 'uploading', error: null })
 
     try {
-      const initRes = await fetch('/api/upload/init', { method: 'POST' })
-      if (!initRes.ok) throw new Error('Failed to initialize upload')
-      const { uploadUrl, videoId } = await initRes.json()
+      // Get worker URL + auth token from server
+      const tokenRes = await fetch('/api/upload/token')
+      if (!tokenRes.ok) throw new Error('Failed to get upload token')
+      const { token, url: workerUrl } = await tokenRes.json()
 
-      await new Promise<void>((resolve, reject) => {
+      // Upload to Railway worker with progress tracking
+      const videoId = await new Promise<string>((resolve, reject) => {
         const xhr = new XMLHttpRequest()
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable)
             updateEntry(entry.id, { progress: Math.round((e.loaded / e.total) * 100) })
         }
-        xhr.onload = () => xhr.status < 300 ? resolve() : reject(new Error('Upload failed'))
+        xhr.onload = () => {
+          if (xhr.status < 300) {
+            try {
+              const data = JSON.parse(xhr.responseText)
+              resolve(data.videoId)
+            } catch {
+              reject(new Error('Invalid response from worker'))
+            }
+          } else {
+            try {
+              const data = JSON.parse(xhr.responseText)
+              reject(new Error(data.error ?? 'Upload failed'))
+            } catch {
+              reject(new Error('Upload failed'))
+            }
+          }
+        }
         xhr.onerror = () => reject(new Error('Upload failed'))
-        xhr.open('POST', uploadUrl)
+        xhr.open('POST', `${workerUrl}/upload`)
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`)
         const fd = new FormData()
         fd.append('file', entry.file)
         xhr.send(fd)
@@ -129,7 +148,7 @@ export default function UploadPage() {
             {entries.length >= 10 ? 'Limit reached (10 clips max)' : 'Click to select videos'}
           </p>
           <p className="text-[var(--muted)] text-sm mt-1">
-            {entries.length >= 10 ? 'Remove a clip to add another' : 'MP4, MOV, WebM — up to 10 at once'}
+            {entries.length >= 10 ? 'Remove a clip to add another' : 'MP4, MOV, WebM — up to 10 at once. Large files are compressed automatically.'}
           </p>
         </div>
 
@@ -166,12 +185,21 @@ export default function UploadPage() {
 
                 <p className="text-xs text-[var(--muted)] mb-2">
                   {(entry.file.size / 1024 / 1024).toFixed(1)} MB
+                  {entry.file.size / 1024 / 1024 > 150 && (
+                    <span className="text-yellow-500 ml-2">· will be compressed</span>
+                  )}
                 </p>
 
                 {(entry.state === 'uploading' || entry.state === 'saving') && (
                   <div>
                     <div className="flex justify-between text-xs text-[var(--muted)] mb-1">
-                      <span>{entry.state === 'saving' ? 'Saving...' : 'Uploading...'}</span>
+                      <span>
+                        {entry.state === 'saving'
+                          ? 'Saving...'
+                          : entry.progress === 100
+                          ? 'Processing...'
+                          : 'Uploading...'}
+                      </span>
                       <span>{entry.progress}%</span>
                     </div>
                     <div className="h-1 bg-[var(--card-border)] rounded-full overflow-hidden">
