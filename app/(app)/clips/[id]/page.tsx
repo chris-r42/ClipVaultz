@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
+import CommentSection from '@/components/CommentSection'
 
 export default async function ClipPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -49,6 +50,8 @@ export default async function ClipPage({ params }: { params: Promise<{ id: strin
           </p>
         )}
       </div>
+
+      <CommentSection clipId={id} />
     </div>
   )
 }
