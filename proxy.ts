@@ -29,6 +29,11 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
+  // Already logged in → skip the login page
+  if (user && pathname.startsWith('/login')) {
+    return NextResponse.redirect(new URL('/', request.url))
+  }
+
   // Public routes — no auth needed
   const publicRoutes = ['/login', '/auth/callback', '/pending']
   if (publicRoutes.some(r => pathname.startsWith(r))) {
