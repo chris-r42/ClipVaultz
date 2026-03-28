@@ -21,18 +21,12 @@ export async function postComment(clipId: string, content: string) {
   return { error: null }
 }
 
-export async function deleteComment(commentId: string, clipId: string) {
+export async function deleteComment(commentId: string, clipId: string): Promise<void> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Not authenticated' }
+  if (!user) return
 
-  const { error } = await supabase
-    .from('comments')
-    .delete()
-    .eq('id', commentId)
-
-  if (error) return { error: error.message }
+  await supabase.from('comments').delete().eq('id', commentId)
 
   revalidatePath(`/clips/${clipId}`)
-  return { error: null }
 }
