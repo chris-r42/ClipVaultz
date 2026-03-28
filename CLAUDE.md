@@ -14,11 +14,13 @@ A private gaming clip sharing website for a friend group. Built with Next.js 16,
 - Auth via Discord + Google OAuth (Supabase Auth)
 - Invite-only access: new signups land on `/pending` until an admin approves them via `/admin`
 - `proxy.ts` (Next.js 16's replacement for middleware) handles auth + approval gating on all routes
+- Already-authenticated users are redirected away from `/login` automatically
 - Feed page (`/`) — grid of all clips
-- Upload page (`/upload`) — direct upload to Cloudflare Stream, then saves metadata to Supabase
-- Clip detail page (`/clips/[id]`) — Cloudflare Stream iframe player + metadata
+- Upload page (`/upload`) — multi-file upload with per-clip titles, shared game/description, parallel uploads with individual progress bars
+- Clip detail page (`/clips/[id]`) — Cloudflare Stream iframe player + metadata + comment section
 - Admin page (`/admin`) — approve/revoke users, toggle admin role
-- Supabase schema: `profiles` table (linked to auth.users via trigger), `clips` table
+- Comment system — post/delete comments on clips; admins can delete any comment; server actions + `revalidatePath` for instant refresh
+- Supabase schema: `profiles`, `clips`, `comments` tables (profiles linked to auth.users via trigger)
 
 ## Key decisions / gotchas
 - `proxy.ts` uses the **service role key** (bypasses RLS) to check approval status — this was necessary because RLS policies on `profiles` caused infinite recursion when checking approval inside other policies
@@ -35,8 +37,11 @@ See `.env.local` (not committed). Required:
 - `CLOUDFLARE_ACCOUNT_ID`
 - `CLOUDFLARE_STREAM_API_TOKEN`
 
+## Deployment
+- Live at `https://clipvault-one.vercel.app`
+- Vercel auto-deploys on push to `main` branch of `github.com/chris-r42/ClipVaultz`
+- Framework preset must be set to **Next.js** in Vercel project settings (not "Other")
+- Supabase auth redirect URL: `https://clipvault-one.vercel.app/auth/callback`
+
 ## Next steps
-1. **Finish Vercel deployment** — user was in the middle of deploying when this session ended. Import repo on vercel.com, add all 5 env vars, deploy.
-2. **Add Supabase auth redirect URL for production** — once Vercel gives a URL, add `https://your-app.vercel.app/auth/callback` to Supabase → Authentication → URL Configuration → Redirect URLs.
-3. **Test production** — sign in, upload a clip, verify everything works on the live URL.
-4. **Phase 2 (future)** — AI features: auto tagging, clip highlights, video summary using Claude API.
+1. **Phase 2 (future)** — AI features: auto tagging, clip highlights, video summary using Claude API.
