@@ -29,8 +29,10 @@ export default function UploadPage() {
       .from('clips')
       .select('game')
       .not('game', 'is', null)
-      .then(({ data }) => {
-        const games = [...new Set((data ?? []).map(r => r.game as string))].sort()
+      .neq('game', '')
+      .then(({ data, error }) => {
+        if (error) { console.error('Failed to load game suggestions:', error); return }
+        const games = [...new Set((data ?? []).map(r => r.game as string).filter(Boolean))].sort()
         setAllGames(games)
       })
   }, [])
@@ -154,7 +156,7 @@ export default function UploadPage() {
                 value={game}
                 onChange={e => { setGame(e.target.value); setShowSuggestions(true) }}
                 onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 placeholder="e.g. Valorant, Warzone..."
                 className="w-full bg-[var(--card)] border border-[var(--card-border)] rounded-lg px-3 py-2 text-white placeholder-[var(--muted)] focus:outline-none focus:border-[var(--accent)] transition-colors"
               />
@@ -164,7 +166,7 @@ export default function UploadPage() {
                     <li key={g}>
                       <button
                         type="button"
-                        onMouseDown={() => { setGame(g); setShowSuggestions(false) }}
+                        onPointerDown={e => { e.preventDefault(); setGame(g); setShowSuggestions(false) }}
                         className="w-full text-left px-3 py-2 text-sm text-white hover:bg-white/5 transition-colors"
                       >
                         {g}
