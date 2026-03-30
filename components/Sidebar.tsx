@@ -41,9 +41,12 @@ export default function Sidebar({ isAdmin, currentUserId, members, className = '
         <MembersPresence members={members} currentUserId={currentUserId} />
       </div>
 
-      {/* Sign out */}
+      {/* Sign out + version */}
       <div className="px-3 py-3 border-t border-white/5 shrink-0">
         <SignOutButton />
+        <p className="text-[10px] text-[var(--muted)] mt-2 px-2 opacity-40">
+          v{process.env.NEXT_PUBLIC_APP_VERSION}
+        </p>
       </div>
     </aside>
   )
