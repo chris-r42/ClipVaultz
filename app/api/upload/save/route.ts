@@ -6,6 +6,18 @@ const anthropic = new Anthropic()
 
 async function detectGame(videoId: string): Promise<string | null> {
   const thumbnailUrl = `https://videodelivery.net/${videoId}/thumbnails/thumbnail.jpg`
+
+  // Wait for thumbnail to be ready — retry up to 3 times with 3s delay
+  let thumbnailReady = false
+  for (let i = 0; i < 3; i++) {
+    if (i > 0) await new Promise(r => setTimeout(r, 3000))
+    try {
+      const check = await fetch(thumbnailUrl, { method: 'HEAD' })
+      if (check.ok) { thumbnailReady = true; break }
+    } catch { /* continue */ }
+  }
+  if (!thumbnailReady) return null
+
   try {
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
