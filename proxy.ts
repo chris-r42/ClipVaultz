@@ -34,16 +34,35 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
+  // Nova iframe bypass — set cookie if valid token present
+  const bypassToken = request.nextUrl.searchParams.get('t')
+  const validToken = process.env.NOVA_BYPASS_TOKEN
+  if (validToken && bypassToken === validToken) {
+    supabaseResponse.cookies.set('nova_bypass', '1', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 60 * 60 * 24 * 7,
+      path: '/',
+    })
+  }
+
+  const novaBypass = request.cookies.get('nova_bypass')?.value === '1' ||
+    (validToken != null && bypassToken === validToken)
+
   // Public routes — no auth needed
   const publicRoutes = ['/login', '/auth/callback', '/pending']
   if (publicRoutes.some(r => pathname.startsWith(r))) {
     return supabaseResponse
   }
 
-  // Not logged in → redirect to login
-  if (!user) {
+  // Not logged in → redirect to login (unless Nova bypass active)
+  if (!user && !novaBypass) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
+
+  // Nova bypass users skip approval check
+  if (!user && novaBypass) return supabaseResponse
 
   // Use service role key to bypass RLS for the approval check
   const adminClient = createServerClient(
