@@ -61,8 +61,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Nova bypass users skip approval check
-  if (!user && novaBypass) return supabaseResponse
+  // Nova bypass users (no account) skip approval check
+  if (!user) return supabaseResponse
 
   // Use service role key to bypass RLS for the approval check
   const adminClient = createServerClient(
