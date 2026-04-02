@@ -18,7 +18,8 @@ export type Comment = {
 
 export type Clip = {
   id: string
-  user_id: string
+  user_id: string | null
+  nova_username: string | null
   title: string
   description: string | null
   game: string | null

@@ -55,7 +55,7 @@ export default async function ClipPage({ params }: { params: Promise<{ id: strin
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 text-sm text-[var(--muted)]">
-            <span className="text-white/80">{clip.profiles?.username ?? 'Unknown'}</span>
+            <span className="text-white/80">{clip.nova_username ?? clip.profiles?.username ?? 'Unknown'}</span>
             {clip.game && (
               <span className="bg-[var(--accent)]/15 text-[var(--accent)] px-2.5 py-0.5 rounded-full text-xs font-medium">
                 {clip.game}

@@ -1,4 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 
@@ -51,7 +53,11 @@ export async function POST(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const cookieStore = await cookies()
+  const novaBypass = cookieStore.get('nova_bypass')?.value === '1'
+  const novaUsername = cookieStore.get('nova_username')?.value ?? 'Nova User'
+
+  if (!user && !novaBypass) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { videoId, title, description, game } = await request.json()
 
@@ -59,10 +65,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
-  const { data: clip, error } = await supabase
+  // Use service role for bypass users to sidestep RLS
+  const insertClient = novaBypass && !user
+    ? createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        { cookies: { getAll: () => [], setAll: () => {} } }
+      )
+    : supabase
+
+  const { data: clip, error } = await insertClient
     .from('clips')
     .insert({
-      user_id: user.id,
+      user_id: user?.id ?? null,
+      nova_username: user ? null : novaUsername,
       cloudflare_video_id: videoId,
       title,
       description,

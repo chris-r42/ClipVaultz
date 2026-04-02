@@ -34,8 +34,9 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // Nova iframe bypass — set cookie if valid token present
+  // Nova iframe bypass — set cookies if valid token present
   const bypassToken = request.nextUrl.searchParams.get('t')
+  const novaUsername = request.nextUrl.searchParams.get('u')
   const validToken = process.env.NOVA_BYPASS_TOKEN
   if (validToken && bypassToken === validToken) {
     supabaseResponse.cookies.set('nova_bypass', '1', {
@@ -45,6 +46,15 @@ export async function proxy(request: NextRequest) {
       maxAge: 60 * 60 * 24 * 7,
       path: '/',
     })
+    if (novaUsername) {
+      supabaseResponse.cookies.set('nova_username', novaUsername, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 60 * 60 * 24 * 7,
+        path: '/',
+      })
+    }
   }
 
   const novaBypass = request.cookies.get('nova_bypass')?.value === '1' ||

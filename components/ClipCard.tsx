@@ -54,7 +54,7 @@ export default function ClipCard({ clip, className = '' }: { clip: Clip; classNa
         <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-1 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-200">
           <p className="text-white text-sm font-semibold truncate leading-tight">{clip.title}</p>
           <div className="flex items-center gap-1.5 mt-0.5">
-            <span className="text-white/60 text-xs">{clip.profiles?.username ?? 'Unknown'}</span>
+            <span className="text-white/60 text-xs">{clip.nova_username ?? clip.profiles?.username ?? 'Unknown'}</span>
             {clip.game && (
               <>
                 <span className="text-white/40 text-xs">·</span>
